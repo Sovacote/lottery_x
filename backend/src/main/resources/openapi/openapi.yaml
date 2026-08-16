@@ -1,0 +1,2862 @@
+openapi: 3.1.0
+info:
+  title: Lottery System API
+  version: 0.1.0
+servers:
+  - url: /api/v1
+tags:
+  - name: System
+    description: Service metadata and contract endpoints.
+  - name: Authentication
+    description: Registration and password login.
+  - name: Users
+    description: Public user creation APIs.
+  - name: Home Page
+    description: Client-facing home page layout and theme configuration.
+  - name: Draws
+    description: Draw lifecycle, execution and result APIs.
+  - name: Tickets
+    description: Ticket purchase, ownership and result APIs.
+  - name: Payments
+    description: Invoices, payments, refunds and provider webhooks.
+  - name: Reports
+    description: Operational reports and exports.
+  - name: Audit
+    description: Audit log inspection.
+  - name: Admin Users
+    description: Administrative user management.
+  - name: Admin RBAC
+    description: Administrative roles, permissions and assignments.
+  - name: Admin Draws
+    description: Administrative draw ownership actions.
+  - name: Admin Prizes
+    description: Administrative prize management.
+  - name: Admin Settings
+    description: Administrative system settings.
+  - name: Admin UI Themes
+    description: Administrative UI theme management.
+  - name: Admin UI Templates
+    description: Administrative home page template management.
+paths:
+  /openapi.yaml:
+    get:
+      tags: [System]
+      operationId: getOpenApiSpec
+      summary: Get OpenAPI document
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OpenAPI YAML document
+          content:
+            application/yaml:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /auth/register:
+    post:
+      tags: [Authentication]
+      operationId: registerUser
+      summary: Register client user
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+  /auth/login:
+    post:
+      tags: [Authentication]
+      operationId: loginByPassword
+      summary: Login by password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+  /home-page:
+    get:
+      tags: [Home Page]
+      operationId: getHomePage
+      summary: Get client home page configuration
+      responses:
+        '200':
+          description: Home page template and available themes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomePage'
+        '404':
+          $ref: '#/components/responses/Error'
+  /users:
+    post:
+      tags: [Users]
+      operationId: createUser
+      summary: Create user
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+  /draws:
+    get:
+      tags: [Draws]
+      operationId: getDraws
+      summary: Get draws list
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Draws list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrawListResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Draws]
+      operationId: createDraw
+      summary: Create draw
+      description: Creates a draw from an existing combination schema or creates a new schema and attaches it to the draw in one operation.
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Draw created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDrawRequest'
+  /draws/{drawId}:
+    get:
+      tags: [Draws]
+      operationId: getDrawById
+      summary: Get draw by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+    patch:
+      tags: [Draws]
+      operationId: updateDraw
+      summary: Update draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDrawRequest'
+      responses:
+        '200':
+          description: Draw updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/activate:
+    post:
+      tags: [Draws]
+      operationId: activateDraw
+      summary: Activate draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/pause:
+    post:
+      tags: [Draws]
+      operationId: pauseDraw
+      summary: Pause draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw paused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/postpone:
+    post:
+      tags: [Draws]
+      operationId: postponeDraw
+      summary: Postpone draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw postponed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/close-sales:
+    post:
+      tags: [Draws]
+      operationId: closeDrawSales
+      summary: Close draw sales
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw sales closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/cancel:
+    post:
+      tags: [Draws]
+      operationId: cancelDraw
+      summary: Cancel draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/archive:
+    post:
+      tags: [Draws]
+      operationId: archiveDraw
+      summary: Archive draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/run:
+    post:
+      tags: [Draws]
+      operationId: runDraw
+      summary: Run draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: drawId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Draw completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunDrawResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /draws/{drawId}/result:
+    post:
+      tags: [Draws]
+      operationId: generateWinningCombination
+      summary: Generate winning combination
+      description: Creates immutable draw result and moves the draw from SALES_CLOSED to DRAWING.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '201':
+          description: Winning combination generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrawResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+    get:
+      tags: [Draws]
+      operationId: getDrawResult
+      summary: Get draw result
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrawResult'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /tickets:
+    get:
+      tags: [Tickets]
+      operationId: getTickets
+      summary: Get tickets list
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Tickets list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketListResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Tickets]
+      operationId: createTicket
+      summary: Create ticket
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+  /tickets/bulk:
+    post:
+      tags: [Tickets]
+      operationId: bulkCreateTickets
+      summary: Bulk create tickets
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Tickets created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketListResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCreateTicketsRequest'
+  /tickets/{ticketId}:
+    get:
+      tags: [Tickets]
+      operationId: getTicketById
+      summary: Get ticket by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdPath'
+      responses:
+        '200':
+          description: Ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+    delete:
+      tags: [Tickets]
+      operationId: deleteTicket
+      summary: Soft delete ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdPath'
+      responses:
+        '204':
+          description: Ticket deleted
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /tickets/{ticketId}/check:
+    post:
+      tags: [Tickets]
+      operationId: checkTicketResult
+      summary: Check ticket result
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdPath'
+      responses:
+        '200':
+          description: Ticket result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /tickets/{ticketId}/cancel:
+    post:
+      tags: [Tickets]
+      operationId: cancelTicket
+      summary: Cancel ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdPath'
+      responses:
+        '200':
+          description: Ticket cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /tickets/{ticketId}/invoice:
+    get:
+      tags: [Payments]
+      operationId: getTicketInvoice
+      summary: Get latest payment invoice for ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdPath'
+      responses:
+        '200':
+          description: Ticket invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Payments]
+      operationId: createInvoiceForTicket
+      summary: Create payment invoice for ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TicketIdPath'
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+  /invoices/{invoiceId}:
+    get:
+      tags: [Payments]
+      operationId: getInvoiceById
+      summary: Get invoice by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /invoices/{invoiceId}/cancel:
+    post:
+      tags: [Payments]
+      operationId: cancelInvoice
+      summary: Cancel active invoice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelInvoiceRequest'
+  /invoices/{invoiceId}/expire:
+    post:
+      tags: [Payments]
+      operationId: expireInvoice
+      summary: Expire active invoice after expiration time
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /invoices/{invoiceId}/mock-webhook:
+    post:
+      tags: [Payments]
+      operationId: simulateMockPaymentWebhook
+      summary: Simulate mock payment webhook for invoice
+      description: Demo helper that signs and processes a mock provider webhook for a pending mock invoice.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Mock webhook processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentWebhookResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MockPaymentWebhookRequest'
+  /payments/{paymentId}/refund:
+    post:
+      tags: [Payments]
+      operationId: refundPayment
+      summary: Request refund for captured payment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Refund request accepted and queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundPaymentRequest'
+  /payment-providers/{providerCode}/webhook:
+    post:
+      tags: [Payments]
+      operationId: processPaymentWebhook
+      summary: Process signed payment provider webhook
+      parameters:
+        - name: providerCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Mock-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Webhook accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentWebhookResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentWebhookPayload'
+  /reports/draws:
+    get:
+      tags: [Reports]
+      operationId: getDrawReport
+      summary: Get draws report
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdQuery'
+        - $ref: '#/components/parameters/UserIdQuery'
+        - $ref: '#/components/parameters/DrawStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Draw report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrawReportResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /reports/tickets:
+    get:
+      tags: [Reports]
+      operationId: getTicketReport
+      summary: Get tickets report
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdQuery'
+        - $ref: '#/components/parameters/DrawIdQuery'
+        - $ref: '#/components/parameters/TicketStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Ticket report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketReportResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /reports/draws/export:
+    get:
+      tags: [Reports]
+      operationId: exportDrawReport
+      summary: Export draws report
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FormatQuery'
+        - $ref: '#/components/parameters/DrawIdQuery'
+        - $ref: '#/components/parameters/UserIdQuery'
+        - $ref: '#/components/parameters/DrawStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Draw report export
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrawReportResponse'
+            text/csv:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /reports/tickets/export:
+    get:
+      tags: [Reports]
+      operationId: exportTicketReport
+      summary: Export tickets report
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FormatQuery'
+        - $ref: '#/components/parameters/UserIdQuery'
+        - $ref: '#/components/parameters/DrawIdQuery'
+        - $ref: '#/components/parameters/TicketStatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Ticket report export
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketReportResponse'
+            text/csv:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /admin/audit-logs:
+    get:
+      tags: [Audit]
+      operationId: getAuditLogs
+      summary: Get audit logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdQuery'
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: entityType
+          in: query
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogListResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /admin/users:
+    get:
+      tags: [Admin Users]
+      operationId: adminListUsers
+      summary: Admin list users
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Admin Users]
+      operationId: adminCreateUser
+      summary: Admin create user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /admin/users/{userId}:
+    get:
+      tags: [Admin Users]
+      operationId: adminGetUser
+      summary: Admin get user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [Admin Users]
+      operationId: adminUpdateUser
+      summary: Admin update user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags: [Admin Users]
+      operationId: adminDeleteUser
+      summary: Admin delete user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '204':
+          description: User deleted
+  /admin/users/{userId}/roles:
+    get:
+      tags: [Admin Users]
+      operationId: adminListUserRoles
+      summary: Admin list user roles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: User roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponse'
+    post:
+      tags: [Admin Users]
+      operationId: adminAssignUserRole
+      summary: Admin assign role to user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleAssignmentRequest'
+      responses:
+        '204':
+          description: Role assigned
+  /admin/users/{userId}/roles/{roleId}:
+    delete:
+      tags: [Admin Users]
+      operationId: adminRemoveUserRole
+      summary: Admin remove role from user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/RoleIdPath'
+      responses:
+        '204':
+          description: Role removed
+  /admin/roles:
+    get:
+      tags: [Admin RBAC]
+      operationId: adminListRoles
+      summary: Admin list roles
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponse'
+    post:
+      tags: [Admin RBAC]
+      operationId: adminCreateRole
+      summary: Admin create role
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleRequest'
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+  /admin/roles/{roleId}:
+    get:
+      tags: [Admin RBAC]
+      operationId: adminGetRole
+      summary: Admin get role
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleIdPath'
+      responses:
+        '200':
+          description: Role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    put:
+      tags: [Admin RBAC]
+      operationId: adminUpdateRole
+      summary: Admin update role
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleRequest'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    delete:
+      tags: [Admin RBAC]
+      operationId: adminDeleteRole
+      summary: Admin delete role
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleIdPath'
+      responses:
+        '204':
+          description: Role deleted
+  /admin/roles/{roleId}/permissions:
+    get:
+      tags: [Admin RBAC]
+      operationId: adminListRolePermissions
+      summary: Admin list role permissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleIdPath'
+      responses:
+        '200':
+          description: Role permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionListResponse'
+    post:
+      tags: [Admin RBAC]
+      operationId: adminAssignRolePermission
+      summary: Admin assign permission to role
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionAssignmentRequest'
+      responses:
+        '204':
+          description: Permission assigned
+  /admin/roles/{roleId}/permissions/{permissionId}:
+    delete:
+      tags: [Admin RBAC]
+      operationId: adminRemoveRolePermission
+      summary: Admin remove permission from role
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RoleIdPath'
+        - $ref: '#/components/parameters/PermissionIdPath'
+      responses:
+        '204':
+          description: Permission removed
+  /admin/permissions:
+    get:
+      tags: [Admin RBAC]
+      operationId: adminListPermissions
+      summary: Admin list permissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionListResponse'
+    post:
+      tags: [Admin RBAC]
+      operationId: adminCreatePermission
+      summary: Admin create permission
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionRequest'
+      responses:
+        '201':
+          description: Permission created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+  /admin/permissions/{permissionId}:
+    get:
+      tags: [Admin RBAC]
+      operationId: adminGetPermission
+      summary: Admin get permission
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PermissionIdPath'
+      responses:
+        '200':
+          description: Permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+    put:
+      tags: [Admin RBAC]
+      operationId: adminUpdatePermission
+      summary: Admin update permission
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PermissionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionRequest'
+      responses:
+        '200':
+          description: Permission updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+    delete:
+      tags: [Admin RBAC]
+      operationId: adminDeletePermission
+      summary: Admin delete permission
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PermissionIdPath'
+      responses:
+        '204':
+          description: Permission deleted
+  /admin/ui-themes:
+    get:
+      tags: [Admin UI Themes]
+      operationId: adminListUiThemes
+      summary: Admin list UI themes
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: UI themes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiThemeListResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Admin UI Themes]
+      operationId: adminCreateUiTheme
+      summary: Admin create UI theme
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UiThemeRequest'
+      responses:
+        '201':
+          description: UI theme created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTheme'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /admin/ui-themes/{themeId}:
+    get:
+      tags: [Admin UI Themes]
+      operationId: adminGetUiTheme
+      summary: Admin get UI theme
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ThemeIdPath'
+      responses:
+        '200':
+          description: UI theme
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTheme'
+        '404':
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [Admin UI Themes]
+      operationId: adminUpdateUiTheme
+      summary: Admin update UI theme
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ThemeIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UiThemeRequest'
+      responses:
+        '200':
+          description: UI theme updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTheme'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /admin/ui-themes/{themeId}/default:
+    post:
+      tags: [Admin UI Themes]
+      operationId: adminSetDefaultUiTheme
+      summary: Admin set default UI theme
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ThemeIdPath'
+      responses:
+        '200':
+          description: Default UI theme updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTheme'
+        '404':
+          $ref: '#/components/responses/Error'
+  /admin/ui-templates:
+    get:
+      tags: [Admin UI Templates]
+      operationId: adminListUiTemplates
+      summary: Admin list UI templates
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: UI templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTemplateListResponse'
+    post:
+      tags: [Admin UI Templates]
+      operationId: adminCreateUiTemplate
+      summary: Admin create UI template
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UiTemplateRequest'
+      responses:
+        '201':
+          description: UI template created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTemplate'
+        '400':
+          $ref: '#/components/responses/Error'
+  /admin/ui-templates/{templateId}:
+    get:
+      tags: [Admin UI Templates]
+      operationId: adminGetUiTemplate
+      summary: Admin get UI template
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TemplateIdPath'
+      responses:
+        '200':
+          description: UI template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTemplate'
+        '404':
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [Admin UI Templates]
+      operationId: adminUpdateUiTemplate
+      summary: Admin update UI template
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TemplateIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UiTemplateRequest'
+      responses:
+        '200':
+          description: UI template updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiTemplate'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /admin/settings/home-page:
+    get:
+      tags: [Admin Settings]
+      operationId: adminGetHomePageSettings
+      summary: Admin get home page settings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Home page settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomePageSettings'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [Admin Settings]
+      operationId: adminUpdateHomePageSettings
+      summary: Admin update home page settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomePageSettingsRequest'
+      responses:
+        '200':
+          description: Home page settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomePageSettings'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /admin/draws/{drawId}/assign-manager:
+    post:
+      tags: [Admin Draws]
+      operationId: adminAssignDrawManager
+      summary: Admin assign manager to draw
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignManagerRequest'
+      responses:
+        '200':
+          description: Draw updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Draw'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /admin/draws/{drawId}/winning-rules:
+    get:
+      tags: [Admin Draws]
+      operationId: adminListDrawWinningRules
+      summary: Admin list draw winning rules
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      responses:
+        '200':
+          description: Draw winning rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WinningRuleListResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [Admin Draws]
+      operationId: adminReplaceDrawWinningRules
+      summary: Admin replace draw winning rules
+      description: Replaces all winning rules for an editable draw. Rules can be changed before sales are closed.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DrawIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WinningRuleListRequest'
+      responses:
+        '200':
+          description: Draw winning rules updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WinningRuleListResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /admin/prizes:
+    get:
+      tags: [Admin Prizes]
+      operationId: adminListPrizes
+      summary: Admin list prizes
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Prize list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrizeListResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Admin Prizes]
+      operationId: adminCreatePrize
+      summary: Admin create prize
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrizeRequest'
+      responses:
+        '201':
+          description: Prize created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prize'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /admin/prizes/{prizeId}:
+    get:
+      tags: [Admin Prizes]
+      operationId: adminGetPrize
+      summary: Admin get prize
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PrizeIdPath'
+      responses:
+        '200':
+          description: Prize
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prize'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [Admin Prizes]
+      operationId: adminUpdatePrize
+      summary: Admin update prize
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PrizeIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrizeRequest'
+      responses:
+        '200':
+          description: Prize updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prize'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-session-token
+  parameters:
+    UserIdQuery:
+      name: userId
+      in: query
+      schema:
+        type: string
+        format: uuid
+    UserIdPath:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RoleIdPath:
+      name: roleId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PermissionIdPath:
+      name: permissionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ThemeIdPath:
+      name: themeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TemplateIdPath:
+      name: templateId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DrawIdPath:
+      name: drawId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PrizeIdPath:
+      name: prizeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TicketIdPath:
+      name: ticketId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DrawIdQuery:
+      name: drawId
+      in: query
+      schema:
+        type: string
+        format: uuid
+    DrawStatusQuery:
+      name: status
+      in: query
+      schema:
+        $ref: '#/components/schemas/DrawStatus'
+    TicketStatusQuery:
+      name: status
+      in: query
+      schema:
+        $ref: '#/components/schemas/TicketStatus'
+    DateFromQuery:
+      name: dateFrom
+      in: query
+      schema:
+        type: string
+        format: date-time
+    DateToQuery:
+      name: dateTo
+      in: query
+      schema:
+        type: string
+        format: date-time
+    LimitQuery:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 100
+    OffsetQuery:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    FormatQuery:
+      name: format
+      in: query
+      schema:
+        type: string
+        enum: [json, csv]
+        default: json
+  responses:
+    Error:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    DrawStatus:
+      type: string
+      enum: [DRAFT, SCHEDULED, ACTIVE, PAUSED, POSTPONED, SALES_CLOSED, DRAWING, COMPLETED, CANCELLED, TEST, ARCHIVED]
+    TicketStatus:
+      type: string
+      enum: [CREATED, PAYMENT_PENDING, PAID, PAYMENT_FAILED, REFUND_PENDING, REFUNDED, CANCELLED, PARTICIPATED, NOT_PARTICIPATED, CHECKED, WIN, LOSE, DELETED, TEST]
+    InvoiceStatus:
+      type: string
+      enum: [CREATED, PENDING, PAID, FAILED, CANCELLED, REFUND_PENDING, REFUNDED, EXPIRED]
+      description: CREATED means local invoice was created and provider creation is queued; PENDING means provider invoice exists or payment is AUTHORIZED; CANCELLED and EXPIRED release the ticket for a new invoice.
+    PaymentStatus:
+      type: string
+      enum: [INITIATED, AUTHORIZED, CAPTURED, FAILED, CANCELLED, REFUNDED]
+      description: AUTHORIZED means provider authorized payment before capture; CANCELLED means provider/local payment was cancelled or invoice expired.
+    UserStatus:
+      type: string
+      enum: [ACTIVE, BLOCKED, DELETED]
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details, requestId]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+            requestId:
+              type: string
+    JsonObject:
+      type: object
+      additionalProperties: true
+    UiTheme:
+      type: object
+      required: [id, name, tokens, defaultTheme, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        tokens:
+          $ref: '#/components/schemas/JsonObject'
+        defaultTheme:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    UiThemeRequest:
+      type: object
+      required: [name, tokens]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        tokens:
+          $ref: '#/components/schemas/JsonObject'
+        defaultTheme:
+          type: boolean
+          default: false
+    UiThemeListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UiTheme'
+    UiTemplate:
+      type: object
+      required: [id, name, layout, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        layout:
+          $ref: '#/components/schemas/JsonObject'
+        createdAt:
+          type: string
+          format: date-time
+    UiTemplateRequest:
+      type: object
+      required: [name, layout]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        layout:
+          $ref: '#/components/schemas/JsonObject'
+    UiTemplateListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UiTemplate'
+    HomePage:
+      type: object
+      required: [template, defaultTheme, themes]
+      properties:
+        template:
+          $ref: '#/components/schemas/UiTemplate'
+        defaultTheme:
+          $ref: '#/components/schemas/UiTheme'
+        themes:
+          type: array
+          items:
+            $ref: '#/components/schemas/UiTheme'
+    HomePageSettings:
+      type: object
+      required: [activeTemplateId, defaultThemeId, updatedAt]
+      properties:
+        activeTemplateId:
+          type: string
+          format: uuid
+        defaultThemeId:
+          type: string
+          format: uuid
+        updatedBy:
+          type: string
+          format: uuid
+        updatedAt:
+          type: string
+          format: date-time
+    HomePageSettingsRequest:
+      type: object
+      required: [activeTemplateId, defaultThemeId]
+      properties:
+        activeTemplateId:
+          type: string
+          format: uuid
+        defaultThemeId:
+          type: string
+          format: uuid
+    CreateUserRequest:
+      type: object
+      required: [email, login]
+      properties:
+        email:
+          type: string
+          format: email
+        login:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+    AdminUserRequest:
+      type: object
+      required: [email, login]
+      properties:
+        email:
+          type: string
+          format: email
+        login:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+        status:
+          $ref: '#/components/schemas/UserStatus'
+    UserListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    Role:
+      type: object
+      required: [id, code, name, system]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        system:
+          type: boolean
+    RoleRequest:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    RoleListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+    Permission:
+      type: object
+      required: [id, code]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        description:
+          type: string
+    PermissionRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+    PermissionListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+    RoleAssignmentRequest:
+      type: object
+      required: [roleId]
+      properties:
+        roleId:
+          type: string
+          format: uuid
+    PermissionAssignmentRequest:
+      type: object
+      required: [permissionId]
+      properties:
+        permissionId:
+          type: string
+          format: uuid
+    AssignManagerRequest:
+      type: object
+      required: [managerId]
+      properties:
+        managerId:
+          type: string
+          format: uuid
+    PrizeType:
+      type: string
+      enum: [MONEY, FOOD_PRODUCT, SPORT_SUPPLEMENT]
+    Prize:
+      type: object
+      required: [id, type, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/PrizeType'
+        name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: number
+        unit:
+          type: string
+    PrizeRequest:
+      type: object
+      required: [type, name]
+      properties:
+        type:
+          $ref: '#/components/schemas/PrizeType'
+        name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: number
+        unit:
+          type: string
+    PrizeListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prize'
+    WinningRule:
+      type: object
+      required: [id, drawId, matchPercentFrom, matchPercentTo, prizeId, priority]
+      properties:
+        id:
+          type: string
+          format: uuid
+        drawId:
+          type: string
+          format: uuid
+        matchPercentFrom:
+          type: number
+          minimum: 0
+          maximum: 100
+          multipleOf: 5
+        matchPercentTo:
+          type: number
+          minimum: 0
+          maximum: 100
+          multipleOf: 5
+        prizeId:
+          type: string
+          format: uuid
+        priority:
+          type: integer
+          minimum: 0
+    WinningRuleRequest:
+      type: object
+      required: [matchPercentFrom, matchPercentTo, prizeId, priority]
+      properties:
+        matchPercentFrom:
+          type: number
+          minimum: 0
+          maximum: 100
+          multipleOf: 5
+        matchPercentTo:
+          type: number
+          minimum: 0
+          maximum: 100
+          multipleOf: 5
+        prizeId:
+          type: string
+          format: uuid
+        priority:
+          type: integer
+          minimum: 0
+    WinningRuleListRequest:
+      type: object
+      required: [rules]
+      properties:
+        rules:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/WinningRuleRequest'
+    WinningRuleListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WinningRule'
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        login:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+    LoginRequest:
+      type: object
+      required: [loginOrEmail, password]
+      properties:
+        loginOrEmail:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+    AuthResponse:
+      type: object
+      required: [accessToken, tokenType, expiresAt, user, roleCodes, permissions]
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          enum: [Bearer]
+        expiresAt:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/User'
+        roleCodes:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        permissions:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+    User:
+      type: object
+      required: [id, email, login, status, createdAt, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        login:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        createdAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+    CreateDrawRequest:
+      type: object
+      required: [title, salesStartAt, salesEndAt, drawAt]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        managerId:
+          type: string
+          format: uuid
+        combinationSchemaId:
+          type: string
+          format: uuid
+          description: Existing combination schema id. Use either combinationSchemaId or combinationSchema.
+        combinationSchema:
+          $ref: '#/components/schemas/CreateCombinationSchemaRequest'
+        salesStartAt:
+          type: string
+          format: date-time
+        salesEndAt:
+          type: string
+          format: date-time
+        drawAt:
+          type: string
+          format: date-time
+        maxTickets:
+          type: integer
+          minimum: 1
+        test:
+          type: boolean
+          default: false
+    CreateCombinationSchemaRequest:
+      type: object
+      required: [name, definitionJson]
+      properties:
+        name:
+          type: string
+          maxLength: 128
+        definitionJson:
+          type: string
+          description: JSON object with positions, allowDuplicates, and orderSensitive.
+          example: |
+            {
+              "positions": [
+                { "type": "NUMBER", "min": 7, "max": 7 },
+                { "type": "NUMBER", "min": 1, "max": 2 }
+              ],
+              "allowDuplicates": false,
+              "orderSensitive": true
+            }
+    UpdateDrawRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        salesStartAt:
+          type: string
+          format: date-time
+        salesEndAt:
+          type: string
+          format: date-time
+        drawAt:
+          type: string
+          format: date-time
+        maxTickets:
+          type: integer
+          minimum: 1
+    Draw:
+      type: object
+      required: [id, title, description, status, combinationSchemaId, salesStartAt, salesEndAt, drawAt, test, createdAt, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/DrawStatus'
+        managerId:
+          type: string
+          format: uuid
+        combinationSchemaId:
+          type: string
+          format: uuid
+        salesStartAt:
+          type: string
+          format: date-time
+        salesEndAt:
+          type: string
+          format: date-time
+        drawAt:
+          type: string
+          format: date-time
+        maxTickets:
+          type: integer
+        test:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+    DrawListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Draw'
+    DrawReportResponse:
+      type: object
+      required: [items, total, limit, offset, hasMore]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Draw'
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        offset:
+          type: integer
+          minimum: 0
+        hasMore:
+          type: boolean
+    RunDrawResponse:
+      type: object
+      required: [drawId, drawResultId, winningCombinationValues, processedTickets, winningTickets, losingTickets, completedAt]
+      properties:
+        drawId:
+          type: string
+          format: uuid
+        drawResultId:
+          type: string
+          format: uuid
+        winningCombinationValues:
+          type: array
+          items:
+            type: string
+        processedTickets:
+          type: integer
+        winningTickets:
+          type: integer
+        losingTickets:
+          type: integer
+        completedAt:
+          type: string
+          format: date-time
+    DrawResult:
+      type: object
+      required: [id, drawId, winningCombinationValues, algorithmVersion, randomProvider, generatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        drawId:
+          type: string
+          format: uuid
+        winningCombinationValues:
+          type: array
+          items:
+            type: string
+        algorithmVersion:
+          type: string
+        randomProvider:
+          type: string
+        proofHash:
+          type: string
+        generatedBy:
+          type: string
+          format: uuid
+        generatedAt:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+        correlationId:
+          type: string
+    CreateTicketRequest:
+      type: object
+      required: [userId, drawId, combinationValues, priceAmount, priceCurrency]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        drawId:
+          type: string
+          format: uuid
+        combinationValues:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        priceAmount:
+          type: string
+          format: decimal
+        priceCurrency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        test:
+          type: boolean
+          default: false
+    BulkCreateTicketsRequest:
+      type: object
+      required: [tickets]
+      properties:
+        tickets:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/CreateTicketRequest'
+    Ticket:
+      type: object
+      required: [id, userId, drawId, status, combinationValues, priceAmount, priceCurrency, test, createdAt, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        drawId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/TicketStatus'
+        combinationValues:
+          type: array
+          items:
+            type: string
+        priceAmount:
+          type: string
+          format: decimal
+        priceCurrency:
+          type: string
+        matchPercent:
+          type: string
+          format: decimal
+        prizeId:
+          type: string
+          format: uuid
+        test:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        participatedAt:
+          type: string
+          format: date-time
+        checkedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+    TicketListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ticket'
+    TicketReportResponse:
+      type: object
+      required: [items, total, limit, offset, hasMore]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ticket'
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        offset:
+          type: integer
+          minimum: 0
+        hasMore:
+          type: boolean
+    AuditLog:
+      type: object
+      required: [id, actorRoleCodes, action, entityType, requestId, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        actorUserId:
+          type: string
+          format: uuid
+        actorRoleCodes:
+          type: array
+          items:
+            type: string
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        requestId:
+          type: string
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        beforeJson:
+          type: string
+        afterJson:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    AuditLogListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+    CreateInvoiceRequest:
+      type: object
+      required: [providerCode, idempotencyKey]
+      properties:
+        providerCode:
+          type: string
+          example: mock
+        idempotencyKey:
+          type: string
+          minLength: 1
+    Invoice:
+      type: object
+      required: [id, ticketId, userId, providerCode, status, amount, currency, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        ticketId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        providerCode:
+          type: string
+        status:
+          $ref: '#/components/schemas/InvoiceStatus'
+        amount:
+          type: string
+          format: decimal
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        externalInvoiceId:
+          type: string
+        paymentUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        paidAt:
+          type: string
+          format: date-time
+    Payment:
+      type: object
+      required: [id, invoiceId, providerCode, status, amount, currency, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        providerCode:
+          type: string
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        amount:
+          type: string
+          format: decimal
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        externalPaymentId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RefundPaymentRequest:
+      type: object
+      required: [idempotencyKey]
+      properties:
+        idempotencyKey:
+          type: string
+          minLength: 1
+    CancelInvoiceRequest:
+      type: object
+      required: [idempotencyKey]
+      properties:
+        idempotencyKey:
+          type: string
+          minLength: 1
+    MockPaymentWebhookRequest:
+      type: object
+      required: [eventType]
+      properties:
+        eventType:
+          type: string
+          enum: [PAYMENT_SUCCEEDED, PAYMENT_FAILED]
+    PaymentWebhookPayload:
+      type: object
+      required: [eventId, eventType, externalInvoiceId]
+      properties:
+        eventId:
+          type: string
+        eventType:
+          type: string
+          enum: [PAYMENT_SUCCEEDED, PAYMENT_FAILED]
+        externalInvoiceId:
+          type: string
+    PaymentWebhookResult:
+      type: object
+      required: [eventId, processed, duplicate, status]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        processed:
+          type: boolean
+        duplicate:
+          type: boolean
+        status:
+          type: string
